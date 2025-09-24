@@ -4,48 +4,145 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>💌 Catch My Letter Kane Bujju 💌</title>
-<style>
-  :root{--bg1:#ffd6e0;--bg2:#ffb3c6;--bg3:#ff8fab;--accent:#ff4d6d;}
-  html,body{height:100%;margin:0;font-family:"Comic Sans MS",cursive;overflow:hidden;-webkit-font-smoothing:antialiased;}
-  body{background:linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg3));touch-action:none;-webkit-touch-callout:none;}
-  h1{color:#fff;margin:12px 0 6px;text-align:center;font-size:clamp(22px,7vw,44px);
-      text-shadow:0 0 8px rgba(255,77,109,0.9),0 0 15px rgba(255,153,179,0.6);z-index:5;}
-  #progress{color:#fff;text-align:center;margin:0 0 10px;font-size:clamp(16px,4.7vw,26px);
-            text-shadow:0 0 6px rgba(255,77,109,0.8);}
 
-  /* canvas */
-  canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:1;}
+<!-- Mobile-friendly font: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg1:#ffd6e0; --bg2:#ffb3c6; --bg3:#ff8fab;
+    --accent:#ff4d6d;
+    --popup-bg: #fff6f9;
+    --popup-text: #3b0526; /* darker for readability */
+    --muted: #6b3750;
+  }
+
+  /* base */
+  html,body{
+    height:100%;
+    margin:0;
+    font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    color:var(--popup-text);
+    -webkit-text-size-adjust:100%;
+    background: linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg3));
+    overflow:hidden;
+    touch-action:none;
+  }
+
+  /* header & progress */
+  h1{
+    color:#1b0520; /* darker header for contrast */
+    margin:12px 0 6px;
+    text-align:center;
+    font-size:clamp(20px,6.5vw,40px);
+    font-weight:700;
+    letter-spacing:0.6px;
+    z-index:5;
+  }
+  #progress{
+    color:var(--muted);
+    text-align:center;
+    margin:0 0 8px;
+    font-size:clamp(14px,4.2vw,22px);
+    font-weight:600;
+  }
+
+  /* canvas fills screen */
+  canvas{ position:fixed; inset:0; width:100vw; height:100vh; display:block; z-index:1; }
 
   /* popups */
-  .popup{z-index:40;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
-         background:#fff0f6;border:2px solid var(--accent);border-radius:14px;padding:18px 20px;
-         color:#d6336c;box-shadow:0 6px 30px rgba(255,77,109,0.25);max-width:92vw;text-align:center;}
-  .popup.hidden{display:none;}
-  .popup .big{font-size:clamp(16px,4.2vw,22px);}
-  .popup .huge{font-size:clamp(18px,5vw,34px);line-height:1.3;}
-  .popup button{margin-top:12px;padding:12px 20px;border-radius:10px;border:0;background:var(--accent);
-                color:#fff;font-size:clamp(14px,4vw,18px);cursor:pointer;}
+  .popup{
+    z-index:60;
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    background:var(--popup-bg);
+    border:2px solid rgba(255,77,109,0.18);
+    border-radius:14px;
+    padding:18px 18px;
+    color:var(--popup-text);
+    box-shadow: 0 10px 40px rgba(11,6,12,0.12);
+    max-width:92vw;
+    text-align:center;
+  }
+  .popup.hidden{ display:none; }
+  .popup .big{ font-size:clamp(16px,4.2vw,20px); line-height:1.4; color:var(--popup-text); }
+  .popup .huge{ font-size:clamp(18px,4.8vw,28px); line-height:1.35; color:var(--popup-text); }
 
-  .celebration{animation:glow 1s infinite alternate;}
-  @keyframes glow{from{box-shadow:0 0 20px #ff4d6d;}to{box-shadow:0 0 40px #ff3385;}}
+  .popup button{
+    margin-top:14px;
+    padding:12px 20px;
+    border-radius:10px;
+    border:0;
+    background:var(--accent);
+    color:#fff;
+    font-size:clamp(14px,4vw,18px);
+    cursor:pointer;
+    font-weight:700;
+    box-shadow: 0 6px 18px rgba(255,77,109,0.18);
+  }
 
-  /* final screen (hidden until triggered) */
-  #finalScreen{display:none;position:fixed;inset:0;z-index:200;background:rgba(6,3,9,0.85);
-               justify-content:center;align-items:center;color:#fff;text-align:center;font-weight:800;flex-direction:column;}
-  #finalText{font-size:clamp(36px,12vw,96px);animation:heartbeat 1.5s infinite;text-shadow:0 0 30px #ff4d6d,0 0 60px #ff99b3;}
-  #finalSub{font-size:clamp(14px,4vw,24px);margin-top:10px;opacity:0.95;}
-  @keyframes heartbeat{0%,100%{transform:scale(1);}50%{transform:scale(1.18);} }
+  .celebration{ animation:glow 1s infinite alternate; }
+  @keyframes glow{ from{ box-shadow:0 0 18px rgba(255,77,109,0.22);} to{ box-shadow:0 0 36px rgba(255,51,133,0.28);} }
 
-  /* confetti */
-  .confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall linear forwards;z-index:150;border-radius:2px;}
-  @keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+  /* final full-screen */
+  #finalScreen{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:200;
+    background: linear-gradient(180deg, rgba(0,0,0,0.72), rgba(4,2,6,0.85));
+    justify-content:center;
+    align-items:center;
+    color:#fff;
+    text-align:center;
+    font-weight:800;
+    flex-direction:column;
+  }
+  #finalText{
+    font-size:clamp(30px,12vw,84px);
+    animation:heartbeat 1.4s infinite;
+    text-shadow:0 8px 40px rgba(255,77,109,0.28), 0 0 16px rgba(255,153,179,0.08);
+    margin:0 12px;
+  }
+  #finalSub{ font-size:clamp(14px,3.8vw,22px); margin-top:10px; opacity:0.95; font-weight:600; color:#ffd7e6; }
+  @keyframes heartbeat{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.12);} }
 
-  /* center text */
-  #centerText{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;color:#fff;
-              text-shadow:0 0 10px rgba(255,77,109,0.9);font-size:clamp(18px,5vw,32px);opacity:0;
-              transition:opacity .9s,transform .9s;pointer-events:none;}
+  /* confetti (DOM fallback) */
+  .confetti{ position:fixed; width:10px; height:10px; top:-10px; animation:fall linear forwards; z-index:150; border-radius:2px; }
+  @keyframes fall{ to { transform:translateY(100vh) rotate(720deg); opacity:0; } }
 
-  @media (max-width:600px){ .popup{padding:22px;border-radius:16px;} }
+  /* center rotating text */
+  #centerText{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    z-index:6;
+    color:#3b0526;
+    font-weight:600;
+    font-size:clamp(16px,4.8vw,28px);
+    opacity:0;
+    transition:opacity .9s, transform .9s;
+    pointer-events:none;
+    text-align:center;
+    padding:4px 12px;
+    background: rgba(255,255,255,0.65);
+    border-radius:999px;
+    box-shadow: 0 6px 18px rgba(11,6,12,0.06);
+  }
+
+  /* mobile adjustments */
+  @media (max-width:600px){
+    body { background: linear-gradient(180deg,#ffeaf0,#ffd3e2,#ffc6dc); }
+    h1 { font-size: clamp(20px,9vw,34px); text-shadow:none; color:#2b0520; }
+    #centerText { font-size:clamp(15px,5.5vw,22px); padding:8px 14px; }
+    .popup { padding:18px 16px; border-radius:14px; }
+    .popup .huge { font-size:clamp(18px,5.5vw,26px); }
+  }
 </style>
 </head>
 <body>
@@ -69,9 +166,9 @@
   <div id="centerText"></div>
 
   <!-- Fullscreen final screen (hidden by default) -->
-  <div id="finalScreen">
+  <div id="finalScreen" aria-hidden="true">
     <div id="finalText">💖 Yatish Loves You 💖</div>
-    <div id="finalSub">Forever & always</div>
+    <div id="finalSub">Forever &amp; always</div>
     <button id="replayBtn" style="margin-top:22px;padding:12px 20px;border-radius:10px;border:0;background:#ff4d6d;color:#fff;font-size:18px;cursor:pointer;display:none;">Replay</button>
   </div>
 
@@ -79,8 +176,7 @@
   <audio id="bgMusic" src="song.mp3" loop></audio>
 
 <script>
-/* ================= Messages ================= */
-/* 29 spawnable messages */
+/* ================= Messages (unchanged) ================= */
 const messages = [
 "💖 Bujju kanna, no fight can reduce my love.",
 "🌸 Kullama you are my safe place and happiness.",
@@ -112,10 +208,7 @@ const messages = [
 "🫂 Pretty lil baby Hugging you always heals me.",
 "💌 Bujjju never ever think of going away from me kaal murethene katthe."
 ];
-/* 30th (final) — shown as popup only after 29 reads */
 const finalMessage = "💞 No matter what,we alll will love you endlessly, ur not just a another women for us your adrusta lakshmi for me, mane ya mudu maglu for amma and yen kasta bandru shakti aage nentkolo strong girl for uncle. We all love u kane";
-
-/* Milestones */
 const milestones = {
  5: "Awww cutie, you’ve caught 5 love notes already 💕 Each one is a piece of my heartfelt words which I always wanted to say for you Kane 💕",
 10: "10 letters read! 😍 Every message is me whispering how much I adore you. You make my world brighter 💖",
@@ -136,19 +229,15 @@ function resize() {
 resize(); window.addEventListener('resize', resize);
 
 /* ================= State ================= */
-let unread = [...messages];   // unread pool (29)
-let envelopes = [];           // on-screen
+let unread = [...messages];
+let envelopes = [];
 let readCount = 0;
 const progressEl = document.getElementById('progress');
-
-/* spawn tuning */
 const SPAWN_MS = 650;
 const MAX_ON_SCREEN = 60;
 
-/* forgiving hitbox on mobile */
 function hitHalf(size){ return Math.max(size * 0.6, 32); }
 
-/* spawn envelope (pick random from unread but do NOT remove it yet) */
 function spawnEnvelope(){
   if(unread.length === 0) return;
   if(envelopes.length >= MAX_ON_SCREEN) return;
@@ -162,10 +251,10 @@ function spawnEnvelope(){
   envelopes.push({ x, y, size, speed, msg, id: Math.random().toString(36).slice(2,9) });
 }
 
-/* spawn timer (only until 29 reads) */
+/* spawn until 29 reads */
 const spawner = setInterval(()=>{ if(readCount < 29) spawnEnvelope(); }, SPAWN_MS);
 
-/* ================= Draw loop ================= */
+/* draw */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle = 'rgba(255,255,255,0.02)';
@@ -176,12 +265,12 @@ function draw(){
     e.y -= e.speed;
     e.x += Math.sin((Date.now()/800)+i) * (e.size * 0.0008);
     ctx.save();
-    ctx.translate(e.x, e.y);
-    ctx.font = `${e.size}px Arial`;
+    ctx.translate(e.x,e.y);
+    ctx.font = `${e.size}px Inter, Arial`;
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(0,0,0,0.12)';
     ctx.fillText('💌', 3, 6);
-    ctx.fillStyle = '#ff3366';
+    ctx.fillStyle = '#b40046';
     ctx.fillText('💌', 0, 0);
     ctx.restore();
   }
@@ -191,20 +280,17 @@ function draw(){
 }
 requestAnimationFrame(draw);
 
-/* ================= Input / hit testing ================= */
+/* input */
 function tryCatchAt(clientX, clientY){
   for(let i=envelopes.length-1;i>=0;i--){
     const e = envelopes[i];
     const half = hitHalf(e.size);
     if(clientX >= e.x-half && clientX <= e.x+half && clientY >= e.y-half && clientY <= e.y+half){
-      // if already read (not in unread) -> just remove visual
       if(unread.indexOf(e.msg) === -1){
         envelopes.splice(i,1);
         return true;
       }
-      // mark as read: remove all envelopes with the same message
       envelopes = envelopes.filter(env => env.msg !== e.msg);
-      // remove from unread so it never spawns again
       const idx = unread.indexOf(e.msg);
       if(idx !== -1) unread.splice(idx,1);
       readCount++;
@@ -218,7 +304,7 @@ function tryCatchAt(clientX, clientY){
 canvas.addEventListener('click', (ev)=> tryCatchAt(ev.clientX, ev.clientY));
 canvas.addEventListener('touchstart', (ev)=>{ if(ev.touches && ev.touches[0]) tryCatchAt(ev.touches[0].clientX, ev.touches[0].clientY); }, {passive:true});
 
-/* ================= Popups & flow ================= */
+/* popups */
 const notePopup = document.getElementById('notePopup');
 const noteText = document.getElementById('noteText');
 const noteClose = document.getElementById('noteClose');
@@ -231,7 +317,6 @@ const replayBtn = document.getElementById('replayBtn');
 noteClose.addEventListener('click', ()=> {
   notePopup.classList.add('hidden');
   if(milestones[readCount]) showMilestone(milestones[readCount]);
-  // when she has read 29 -> show 30th big popup
   if(readCount === 29){
     finalBigText.innerText = finalMessage;
     finalPopup.classList.remove('hidden');
@@ -239,12 +324,10 @@ noteClose.addEventListener('click', ()=> {
     launchConfetti();
   }
 });
-
 function showNote(txt){
   noteText.innerText = txt;
   notePopup.classList.remove('hidden');
 }
-
 function showMilestone(txt){
   const mp = document.getElementById('milestonePopup') || createMilestonePopup();
   const mt = document.getElementById('milestoneText');
@@ -262,8 +345,8 @@ function createMilestonePopup(){
   return div;
 }
 
-/* When user clicks the final popup button -> show final screen */
-finalButton.addEventListener('click', ()=>{
+/* final button */
+finalButton.addEventListener('click', ()=> {
   finalPopup.classList.add('hidden');
   clearInterval(spawner);
   setTimeout(()=>{
@@ -272,10 +355,9 @@ finalButton.addEventListener('click', ()=>{
     replayBtn.style.display = 'inline-block';
   }, 400);
 });
-
 replayBtn.addEventListener('click', ()=> location.reload());
 
-/* ================= Confetti ================= */
+/* confetti */
 function launchConfetti(){
   for(let i=0;i<120;i++){
     const c = document.createElement('div');
@@ -288,7 +370,7 @@ function launchConfetti(){
   }
 }
 
-/* ================= Center rotating text ================= */
+/* center rotating text */
 const centerText = document.getElementById('centerText');
 const centerMessages = [
   "Tap the letters 💌",
@@ -299,14 +381,13 @@ const centerMessages = [
 ];
 let ci = 0;
 function cycleCenter(){ centerText.style.opacity = 0; setTimeout(()=>{ centerText.innerText = centerMessages[ci]; centerText.style.opacity = 1; ci = (ci+1) % centerMessages.length; }, 700); }
-setInterval(cycleCenter, 3800);
-cycleCenter();
+setInterval(cycleCenter, 3800); cycleCenter();
 
-/* ================= Audio autoplay fix ================= */
+/* audio fix */
 const bg = document.getElementById('bgMusic');
 document.body.addEventListener('click', ()=>{ if(bg.paused) bg.play(); }, {once:true});
 
-/* prevent accidental selection */
+/* prevent selection */
 document.addEventListener('selectstart', e => e.preventDefault());
 </script>
 </body>
