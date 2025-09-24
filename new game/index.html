@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>💌 Catch My Letter Kane Bujju 💌</title>
+<style>
+  :root{--bg1:#ffd6e0;--bg2:#ffb3c6;--bg3:#ff8fab;--accent:#ff4d6d;}
+  html,body{height:100%;margin:0;font-family:"Comic Sans MS",cursive;overflow:hidden;-webkit-font-smoothing:antialiased;}
+  body{background:linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg3));touch-action:none;-webkit-touch-callout:none;}
+  h1{color:#fff;margin:12px 0 6px;text-align:center;font-size:clamp(22px,7vw,44px);
+      text-shadow:0 0 8px rgba(255,77,109,0.9),0 0 15px rgba(255,153,179,0.6);z-index:5;}
+  #progress{color:#fff;text-align:center;margin:0 0 10px;font-size:clamp(16px,4.7vw,26px);
+            text-shadow:0 0 6px rgba(255,77,109,0.8);}
+
+  /* canvas */
+  canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:1;}
+
+  /* popups */
+  .popup{z-index:40;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+         background:#fff0f6;border:2px solid var(--accent);border-radius:14px;padding:18px 20px;
+         color:#d6336c;box-shadow:0 6px 30px rgba(255,77,109,0.25);max-width:92vw;text-align:center;}
+  .popup.hidden{display:none;}
+  .popup .big{font-size:clamp(16px,4.2vw,22px);}
+  .popup .huge{font-size:clamp(18px,5vw,34px);line-height:1.3;}
+  .popup button{margin-top:12px;padding:12px 20px;border-radius:10px;border:0;background:var(--accent);
+                color:#fff;font-size:clamp(14px,4vw,18px);cursor:pointer;}
+
+  .celebration{animation:glow 1s infinite alternate;}
+  @keyframes glow{from{box-shadow:0 0 20px #ff4d6d;}to{box-shadow:0 0 40px #ff3385;}}
+
+  /* final screen (hidden until triggered) */
+  #finalScreen{display:none;position:fixed;inset:0;z-index:200;background:rgba(6,3,9,0.85);
+               justify-content:center;align-items:center;color:#fff;text-align:center;font-weight:800;flex-direction:column;}
+  #finalText{font-size:clamp(36px,12vw,96px);animation:heartbeat 1.5s infinite;text-shadow:0 0 30px #ff4d6d,0 0 60px #ff99b3;}
+  #finalSub{font-size:clamp(14px,4vw,24px);margin-top:10px;opacity:0.95;}
+  @keyframes heartbeat{0%,100%{transform:scale(1);}50%{transform:scale(1.18);} }
+
+  /* confetti */
+  .confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall linear forwards;z-index:150;border-radius:2px;}
+  @keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+
+  /* center text */
+  #centerText{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;color:#fff;
+              text-shadow:0 0 10px rgba(255,77,109,0.9);font-size:clamp(18px,5vw,32px);opacity:0;
+              transition:opacity .9s,transform .9s;pointer-events:none;}
+
+  @media (max-width:600px){ .popup{padding:22px;border-radius:16px;} }
+</style>
+</head>
+<body>
+  <h1>💌 Floating Love Letters 💌</h1>
+  <div id="progress">0 / 30</div>
+
+  <canvas id="gameCanvas" aria-label="Floating letters area"></canvas>
+
+  <!-- Note popup -->
+  <div id="notePopup" class="popup hidden" role="dialog" aria-modal="true">
+    <div id="noteText" class="big"></div>
+    <button id="noteClose">Close</button>
+  </div>
+
+  <!-- Final (30th) popup — appears after 29 reads -->
+  <div id="finalPopup" class="popup hidden" role="dialog" aria-modal="true">
+    <div id="finalBigText" class="huge"></div>
+    <button id="finalButton">Bujju — Yatish wants to say something to you</button>
+  </div>
+
+  <div id="centerText"></div>
+
+  <!-- Fullscreen final screen (hidden by default) -->
+  <div id="finalScreen">
+    <div id="finalText">💖 Yatish Loves You 💖</div>
+    <div id="finalSub">Forever & always</div>
+    <button id="replayBtn" style="margin-top:22px;padding:12px 20px;border-radius:10px;border:0;background:#ff4d6d;color:#fff;font-size:18px;cursor:pointer;display:none;">Replay</button>
+  </div>
+
+  <!-- optional background music -->
+  <audio id="bgMusic" src="song.mp3" loop></audio>
+
+<script>
+/* ================= Messages ================= */
+/* 29 spawnable messages */
+const messages = [
+"💖 Bujju kanna, no fight can reduce my love.",
+"🌸 Kullama you are my safe place and happiness.",
+"🌈 Putti I’ll always stand by you no matter what.",
+"🫂 Kulli I want to hug you tight and reassure u.",
+"❤️ Katthe You mean more than words for me.",
+"🌹 Nan Rani nange nen mel preethi antu kame agalla.",
+"💫 Nan menake you are the best part of my day.",
+"🕊️ Cutie your soo very loved by all of us kane I am always here fr u.",
+"✨ Sweetie Your smile is my Happiness yeli ond kita nagu nodona kane.",
+"🌻 Nan sundri Yena jagala aadedaruu nenn nanng lakshmi ne.",
+"💌 Nan chuttamale life with u is my dream come true.",
+"💭 Kulls your always my top priority forever kane, spelling wrong edra adjust madko hehehe.",
+"🫶 Putti I cherish every moment with you kane nang nen thumba esta.",
+"🥰 Thiklu You’re my favorite hello and my hardest goodbye.",
+"🔐 Mentlu your our happines kane for me ,uncle mathe Amma.",
+"🌷 Yemme You’re my safe place kane .",
+"💞 Nang antu nen mela Love sakath jaasthe agtedha.",
+"🌟 Nan Thanu is stronger than anyone think.",
+"💝 Darlinguu Even in silence, I feel you with me.",
+"🌼 Nan Psycho You deserve every happiness.",
+"🕊️ For Your Putts, even bad days are bright wid u.",
+"💌 I love holding your hand and forever will kane.",
+"❤️ Bujju ond kita nagoo please.",
+"🌹 Mudu bujjuuu nann favourite flower nenu bare nang alla uncle mathe amm gu kuda.",
+"✨ Leyyyyyy You complete my world looosu.",
+"💖 Looooooooju be Forever mine, and ill forever yours.",
+"🌈 Nan mohini You light up my life.",
+"🫂 Pretty lil baby Hugging you always heals me.",
+"💌 Bujjju never ever think of going away from me kaal murethene katthe."
+];
+/* 30th (final) — shown as popup only after 29 reads */
+const finalMessage = "💞 No matter what,we alll will love you endlessly, ur not just a another women for us your adrusta lakshmi for me, mane ya mudu maglu for amma and yen kasta bandru shakti aage nentkolo strong girl for uncle. We all love u kane";
+
+/* Milestones */
+const milestones = {
+ 5: "Awww cutie, you’ve caught 5 love notes already 💕 Each one is a piece of my heartfelt words which I always wanted to say for you Kane 💕",
+10: "10 letters read! 😍 Every message is me whispering how much I adore you. You make my world brighter 💖",
+20: "Wow, 20 love notes! 🥰 You’re my everything, and catching these reminds me how lucky I am to have you in my life 💞"
+};
+
+/* ================= Canvas setup (DPR aware) ================= */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+function resize() {
+  const dpr = Math.max(window.devicePixelRatio || 1, 1);
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  canvas.width = Math.round(window.innerWidth * dpr);
+  canvas.height = Math.round(window.innerHeight * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize(); window.addEventListener('resize', resize);
+
+/* ================= State ================= */
+let unread = [...messages];   // unread pool (29)
+let envelopes = [];           // on-screen
+let readCount = 0;
+const progressEl = document.getElementById('progress');
+
+/* spawn tuning */
+const SPAWN_MS = 650;
+const MAX_ON_SCREEN = 60;
+
+/* forgiving hitbox on mobile */
+function hitHalf(size){ return Math.max(size * 0.6, 32); }
+
+/* spawn envelope (pick random from unread but do NOT remove it yet) */
+function spawnEnvelope(){
+  if(unread.length === 0) return;
+  if(envelopes.length >= MAX_ON_SCREEN) return;
+  const msg = unread[Math.floor(Math.random()*unread.length)];
+  const marginX = 0.06 * window.innerWidth;
+  const x = marginX + Math.random() * (window.innerWidth - marginX*2);
+  const y = window.innerHeight + 40 + Math.random()*40;
+  const base = Math.min(window.innerWidth, window.innerHeight);
+  const size = Math.min(Math.max(Math.floor(base / (base < 500 ? 10 : 12)), 48), 90);
+  const speed = 1 + Math.random()*1.6;
+  envelopes.push({ x, y, size, speed, msg, id: Math.random().toString(36).slice(2,9) });
+}
+
+/* spawn timer (only until 29 reads) */
+const spawner = setInterval(()=>{ if(readCount < 29) spawnEnvelope(); }, SPAWN_MS);
+
+/* ================= Draw loop ================= */
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = 'rgba(255,255,255,0.02)';
+  ctx.fillRect(0,0,window.innerWidth,window.innerHeight);
+
+  for(let i=0;i<envelopes.length;i++){
+    const e = envelopes[i];
+    e.y -= e.speed;
+    e.x += Math.sin((Date.now()/800)+i) * (e.size * 0.0008);
+    ctx.save();
+    ctx.translate(e.x, e.y);
+    ctx.font = `${e.size}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.fillText('💌', 3, 6);
+    ctx.fillStyle = '#ff3366';
+    ctx.fillText('💌', 0, 0);
+    ctx.restore();
+  }
+
+  envelopes = envelopes.filter(e => e.y > -140);
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+/* ================= Input / hit testing ================= */
+function tryCatchAt(clientX, clientY){
+  for(let i=envelopes.length-1;i>=0;i--){
+    const e = envelopes[i];
+    const half = hitHalf(e.size);
+    if(clientX >= e.x-half && clientX <= e.x+half && clientY >= e.y-half && clientY <= e.y+half){
+      // if already read (not in unread) -> just remove visual
+      if(unread.indexOf(e.msg) === -1){
+        envelopes.splice(i,1);
+        return true;
+      }
+      // mark as read: remove all envelopes with the same message
+      envelopes = envelopes.filter(env => env.msg !== e.msg);
+      // remove from unread so it never spawns again
+      const idx = unread.indexOf(e.msg);
+      if(idx !== -1) unread.splice(idx,1);
+      readCount++;
+      progressEl.innerText = `${readCount} / 30`;
+      showNote(e.msg);
+      return true;
+    }
+  }
+  return false;
+}
+canvas.addEventListener('click', (ev)=> tryCatchAt(ev.clientX, ev.clientY));
+canvas.addEventListener('touchstart', (ev)=>{ if(ev.touches && ev.touches[0]) tryCatchAt(ev.touches[0].clientX, ev.touches[0].clientY); }, {passive:true});
+
+/* ================= Popups & flow ================= */
+const notePopup = document.getElementById('notePopup');
+const noteText = document.getElementById('noteText');
+const noteClose = document.getElementById('noteClose');
+const finalPopup = document.getElementById('finalPopup');
+const finalBigText = document.getElementById('finalBigText');
+const finalButton = document.getElementById('finalButton');
+const finalScreen = document.getElementById('finalScreen');
+const replayBtn = document.getElementById('replayBtn');
+
+noteClose.addEventListener('click', ()=> {
+  notePopup.classList.add('hidden');
+  if(milestones[readCount]) showMilestone(milestones[readCount]);
+  // when she has read 29 -> show 30th big popup
+  if(readCount === 29){
+    finalBigText.innerText = finalMessage;
+    finalPopup.classList.remove('hidden');
+    finalPopup.classList.add('celebration');
+    launchConfetti();
+  }
+});
+
+function showNote(txt){
+  noteText.innerText = txt;
+  notePopup.classList.remove('hidden');
+}
+
+function showMilestone(txt){
+  const mp = document.getElementById('milestonePopup') || createMilestonePopup();
+  const mt = document.getElementById('milestoneText');
+  const mc = document.getElementById('milestoneClose');
+  mt.innerText = txt;
+  mp.classList.remove('hidden');
+  mc.onclick = ()=> mp.classList.add('hidden');
+}
+function createMilestonePopup(){
+  const div = document.createElement('div');
+  div.id = 'milestonePopup';
+  div.className = 'popup';
+  div.innerHTML = `<div id="milestoneText" class="huge"></div><button id="milestoneClose">Okay</button>`;
+  document.body.appendChild(div);
+  return div;
+}
+
+/* When user clicks the final popup button -> show final screen */
+finalButton.addEventListener('click', ()=>{
+  finalPopup.classList.add('hidden');
+  clearInterval(spawner);
+  setTimeout(()=>{
+    launchConfetti();
+    finalScreen.style.display = 'flex';
+    replayBtn.style.display = 'inline-block';
+  }, 400);
+});
+
+replayBtn.addEventListener('click', ()=> location.reload());
+
+/* ================= Confetti ================= */
+function launchConfetti(){
+  for(let i=0;i<120;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random()*100 + 'vw';
+    c.style.background = ['#ff4d6d','#ff79a8','#ffc0cb','#ffd6e0'][Math.floor(Math.random()*4)];
+    c.style.animationDuration = (2 + Math.random()*3) + 's';
+    document.body.appendChild(c);
+    setTimeout(()=> c.remove(), 5200);
+  }
+}
+
+/* ================= Center rotating text ================= */
+const centerText = document.getElementById('centerText');
+const centerMessages = [
+  "Tap the letters 💌",
+  "NAN MUDU BUJJU ❤️",
+  "With Thumba Love… 💕",
+  "MISSING U KANE 💖",
+  "Endless Love 💞"
+];
+let ci = 0;
+function cycleCenter(){ centerText.style.opacity = 0; setTimeout(()=>{ centerText.innerText = centerMessages[ci]; centerText.style.opacity = 1; ci = (ci+1) % centerMessages.length; }, 700); }
+setInterval(cycleCenter, 3800);
+cycleCenter();
+
+/* ================= Audio autoplay fix ================= */
+const bg = document.getElementById('bgMusic');
+document.body.addEventListener('click', ()=>{ if(bg.paused) bg.play(); }, {once:true});
+
+/* prevent accidental selection */
+document.addEventListener('selectstart', e => e.preventDefault());
+</script>
+</body>
+</html>
